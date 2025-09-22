@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useContext } from "react";
 import {
   View,
   Text,
@@ -7,12 +7,18 @@ import {
   StyleSheet,
   Dimensions,
   TouchableWithoutFeedback,
+  Image,
 } from "react-native";
+import Icon from "react-native-vector-icons/Ionicons";
+import { AppContext } from "../Context/AppContext";
 
 const { width } = Dimensions.get("window");
 const DRAWER_WIDTH = width * 0.75;
 
 export default function CustomDrawer({ navigation, isOpen, onClose }) {
+
+  const { userLoggedIn, setUserLoggedIn } = useContext(AppContext);
+
   const translateX = useRef(new Animated.Value(-DRAWER_WIDTH)).current;
   const overlayOpacity = useRef(new Animated.Value(0)).current;
 
@@ -46,12 +52,25 @@ export default function CustomDrawer({ navigation, isOpen, onClose }) {
     }
   }, [isOpen]);
 
+  const MenuItem = ({ label, iconName, onPress }) => (
+    <TouchableOpacity
+      activeOpacity={0.6}
+      onPress={onPress}
+      style={styles.menuItemContainer}
+    >
+      <View style={styles.menuItemContent}>
+        <Icon name={iconName} size={22} color="#555" style={styles.menuIcon} />
+        <Text style={styles.menuItem}>{label}</Text>
+      </View>
+    </TouchableOpacity>
+  );
+
   return (
     <>
       {/* Overlay */}
       <TouchableWithoutFeedback onPress={onClose}>
         <Animated.View
-          pointerEvents={isOpen ? "auto" : "none"} // ✅ block taps only when open
+          pointerEvents={isOpen ? "auto" : "none"}
           style={[styles.overlay, { opacity: overlayOpacity }]}
         />
       </TouchableWithoutFeedback>
@@ -63,33 +82,54 @@ export default function CustomDrawer({ navigation, isOpen, onClose }) {
           {
             transform: [{ translateX }],
           },
-        ]} 
+        ]}
       >
-        <Text style={styles.title}>Menu</Text>
-        <TouchableOpacity
+        {/* Profile Section */}
+        <View style={styles.profileSection}>
+          <Image
+            source={{
+              uri: "https://randomuser.me/api/portraits/men/32.jpg",
+            }}
+            style={styles.profileImage}
+          />
+          <Text style={styles.profileName}>Shahrukh</Text>
+          <Text style={styles.profileEmail}>shahrukh@example.com</Text>
+        </View>
+
+        {/* Menu Items */}
+        <MenuItem
+          label="Home"
+          iconName="home-outline"
           onPress={() => {
             navigation.navigate("Home");
             onClose();
           }}
-        >
-          <Text style={styles.item}>Home</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
+        />
+        <MenuItem
+          label="Profile"
+          iconName="person-outline"
           onPress={() => {
             navigation.navigate("Profile");
             onClose();
           }}
-        >
-          <Text style={styles.item}>Profile</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
+        />
+        <MenuItem
+          label="Settings"
+          iconName="settings-outline"
           onPress={() => {
             navigation.navigate("Settings");
             onClose();
           }}
-        >
-          <Text style={styles.item}>Settings</Text>
-        </TouchableOpacity>
+        />
+        <MenuItem
+          label="Logout"
+          iconName="log-out-outline"
+          onPress={() => {
+            setUserLoggedIn(false)
+            // handle logout
+            onClose();
+          }}
+        />
       </Animated.View>
     </>
   );
@@ -112,10 +152,50 @@ const styles = StyleSheet.create({
     bottom: 0,
     width: DRAWER_WIDTH,
     backgroundColor: "#fff",
-    padding: 20,
-    elevation: 10,
+    paddingVertical: 40,
+    paddingHorizontal: 20,
+    borderTopRightRadius: 20,
+    borderBottomRightRadius: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 5, height: 0 },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 15,
     zIndex: 1000,
   },
-  title: { fontSize: 24, marginBottom: 20, fontWeight: "bold" },
-  item: { fontSize: 18, marginVertical: 10 },
+  profileSection: {
+    alignItems: "center",
+    marginBottom: 30,
+  },
+  profileImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    marginBottom: 10,
+  },
+  profileName: {
+    fontSize: 20,
+    fontWeight: "bold",
+  },
+  profileEmail: {
+    fontSize: 14,
+    color: "#777",
+  },
+  menuItemContainer: {
+    paddingVertical: 15,
+    borderBottomColor: "#eee",
+    borderBottomWidth: 1,
+  },
+  menuItemContent: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  menuIcon: {
+    marginRight: 15,
+  },
+  menuItem: {
+    fontSize: 18,
+    fontWeight: "500",
+    color: "#333",
+  },
 });
